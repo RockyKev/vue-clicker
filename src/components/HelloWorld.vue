@@ -1,130 +1,135 @@
 <template>
-  <div class="hello">
+  <div>
     <h1>{{ msg }}</h1>
     <p>
-      For a guide and recipes on how to configure / customize this project,<br />
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener"
-        >vue-cli documentation</a
-      >.
+      <GoldMined :total="goldStats.total"></GoldMined>
     </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel"
-          target="_blank"
-          rel="noopener"
-          >babel</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-pwa"
-          target="_blank"
-          rel="noopener"
-          >pwa</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-vuex"
-          target="_blank"
-          rel="noopener"
-          >vuex</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint"
-          target="_blank"
-          rel="noopener"
-          >eslint</a
-        >
-      </li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li>
-        <a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a>
-      </li>
-      <li>
-        <a href="https://forum.vuejs.org" target="_blank" rel="noopener"
-          >Forum</a
-        >
-      </li>
-      <li>
-        <a href="https://chat.vuejs.org" target="_blank" rel="noopener"
-          >Community Chat</a
-        >
-      </li>
-      <li>
-        <a href="https://twitter.com/vuejs" target="_blank" rel="noopener"
-          >Twitter</a
-        >
-      </li>
-      <li>
-        <a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a>
-      </li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li>
-        <a href="https://router.vuejs.org" target="_blank" rel="noopener"
-          >vue-router</a
-        >
-      </li>
-      <li>
-        <a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a>
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/vue-devtools#vue-devtools"
-          target="_blank"
-          rel="noopener"
-          >vue-devtools</a
-        >
-      </li>
-      <li>
-        <a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener"
-          >vue-loader</a
-        >
-      </li>
-      <li>
-        <a
-          href="https://github.com/vuejs/awesome-vue"
-          target="_blank"
-          rel="noopener"
-          >awesome-vue</a
-        >
-      </li>
-    </ul>
+    <p>Pick Level: {{goldStats.pickLevel}}</p>
+    <button v-on:click="mineGold()">Mine for Gold(+{{goldStats.perClick}})</button>
+    <button
+      v-on:click="upgradeGoldPerClick()"
+      v-if="goldStats.total >= goldStats.perClickCost"
+    >Upgrade Pick (Cost: {{goldStats.perClickCost}})</button>
+    <button v-on:click="resetAll()">RESET EVERYTHING</button>
+
+    <UpgradeButton
+      :buttonValue="500"
+      :buttonId="0"
+      :buttonUpgrade="6000"
+      :buttonpickLevels="goldStats.pickLevels"
+      v-on:whenClicked="handleClickInParent"
+    ></UpgradeButton>
+
+    <footer v-html="attributes"></footer>
   </div>
 </template>
 
 <script>
+import GoldMined from "./GoldMined.vue";
+import UpgradeButton from "./UpgradeButton.vue";
+
+
 export default {
   name: "HelloWorld",
+  data: function() {
+    return {
+      //  videos: this.$store.state.videos,
+      // goldStats: {
+      //   total: 10,
+      //   perClick: 1,
+      //   perClickCost: 10,
+      //   pickLevels: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      // },
+      goldStats: this.$store.state.goldStats,
+      attributes:
+        'Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon"> www.flaticon.com</a>'
+    };
+  },
   props: {
     msg: String
+  },
+  components: {
+    GoldMined,
+    UpgradeButton
+  },
+  methods: {
+    resetAll: function() {
+      this.goldStats = {
+        total: 10,
+        perClick: 1,
+        perClickCost: 10,
+        pickLevels: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      };
+    },
+    handleClickInParent: function(addThisToTotal, buttonpickLevels) {
+      // this.goldStats.total = this.goldStats.total + parseInt(buttonValue);
+      // console.log("button clicked via child", buttonValue);
+      this.pickLevels = buttonpickLevels;
+      console.log("Parent: this pick levels", this.pickLevels);
+      console.log("addThisToTotal", addThisToTotal);
+      this.goldStats.perClick += addThisToTotal;
+      console.log("per click", this.goldStats.perClick);
+
+      //upgrade the Array
+
+},
+    mineGold: function() {
+      this.goldStats.total += parseInt(this.goldStats.perClick);
+
+      console.log("state: ", this.$store.state.goldStats);
+
+    },
+    upgradeGoldPerClick: function() {
+      //pay for it
+      this.goldStats.total = this.goldStats.total - this.goldStats.perClickCost;
+      //increase the fee
+      this.goldStats.perClickCost = Math.floor(this.goldStats.perClickCost * 2);
+      //upgrade
+      this.goldStats.perClick = Math.floor(
+        (this.goldStats.perClick + this.goldStats.perClick) * 1.1
+      );
+      this.goldStats.pickLevel = this.goldStats.pickLevel + 1;
+    },
+    runEverySecond: function() {
+      setInterval(
+        function() {
+          this.goldStats.total += this.goldStats.perClick;
+        }.bind(this),
+        1500
+      );
+    },
+    savingTheGame: function() {
+      setInterval(
+        function() {
+          const parsed = JSON.stringify(this.goldStats);
+          localStorage.setItem("goldMinerSave", parsed);
+          this.$toasted.show("Game saved!").goAway(2500);
+        }.bind(this),
+        30000
+      );
+      // setInterval(function() {
+      // }.bind(this), 15000);
+    }
+  },
+  mounted() {
+    if (localStorage.getItem("goldMinerSave")) {
+      try {
+        this.goldStats = JSON.parse(localStorage.getItem("goldMinerSave"));
+      } catch (e) {
+        localStorage.removeItem("goldMinerSave");
+      }
+    }
+  },
+  created: function() {
+    this.runEverySecond();
+    this.savingTheGame();
   }
 };
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style scoped lang="scss">
+<style scoped>
 h3 {
   margin: 40px 0 0;
-}
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-a {
-  color: #42b983;
 }
 </style>
